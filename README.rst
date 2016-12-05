@@ -161,7 +161,7 @@ please follow these guidelines:
 
 An example:
 
-    ▲> help(Any)
+    ▶ help(Any)
     Result: Object type: AnyGuard
     A guard which admits the universal set.
     This object specializes to a guard which admits the union of its

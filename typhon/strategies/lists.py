@@ -91,24 +91,26 @@ def unboxUnconnectedRef(value):
     assert isinstance(value, UnconnectedRef), "Implementation detail"
     return value._problem
 
-unboxedStrategies = [makeUnboxedListStrategy(cls, box, unbox, exemplar)
-for (cls, box, unbox, exemplar) in [
-    # Chars.
-    (CharObject, CharObject, unwrapChar, CharObject(u'▲')),
-    # Small ints.
-    (IntObject, IntObject, unwrapInt, IntObject(42)),
-    # Unicode strings.
-    (StrObject, StrObject, unwrapStr, StrObject(u"▲")),
-    # Bytestrings.
-    (BytesObject, BytesObject, unwrapBytes, BytesObject("M")),
-    # _booleanFlow-generated lists of unconnected refs.
-    (UnconnectedRef, UnconnectedRef, unboxUnconnectedRef,
-        UnconnectedRef(StrObject(u"Implementation detail leaked"))),
-]]
+unboxedStrategies = [
+    makeUnboxedListStrategy(cls, box, unbox, exemplar)
+    for (cls, box, unbox, exemplar) in [
+        # Chars.
+        (CharObject, CharObject, unwrapChar, CharObject(u'▲')),
+        # Small ints.
+        (IntObject, IntObject, unwrapInt, IntObject(42)),
+        # Unicode strings.
+        (StrObject, StrObject, unwrapStr, StrObject(u"▲")),
+        # Bytestrings.
+        (BytesObject, BytesObject, unwrapBytes, BytesObject("M")),
+        # _booleanFlow-generated lists of unconnected refs.
+        (UnconnectedRef, UnconnectedRef, unboxUnconnectedRef,
+            UnconnectedRef(StrObject(u"Implementation detail leaked"))),
+    ]
+]
 
 
-@rstrategies.strategy(generalize=[NullListStrategy] + unboxedStrategies +
-    [GenericListStrategy])
+@rstrategies.strategy(
+    generalize=[NullListStrategy] + unboxedStrategies + [GenericListStrategy])
 class EmptyListStrategy(Strategy):
     """
     A list with no elements.

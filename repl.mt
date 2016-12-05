@@ -90,5 +90,5 @@ def main(argv, => Timer, => currentProcess, => currentRuntime, => currentVat,
                                         "withExtras" => true)
     def stdout := alterSink.encodeWith(UTF8, stdio.stdout())
     def parser := makeMonteParser(&environment, unsealException)
-    def p := runREPL(parser.reset, fn x {x}, "▲> ", "…> ", stdin, stdout)
+    def p := runREPL(parser.reset, fn x {x}, "▶ ", "…> ", stdin, stdout)
     return when (p) -> { 0 }
