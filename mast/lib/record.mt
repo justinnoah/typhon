@@ -61,8 +61,26 @@ def makeRecord(name :Str, fields :Map[Str, DeepFrozen]) as DeepFrozen:
 
     return [Record, recordMaker]
 
+# Combine multiple records as one record with a new given name
+def unionRecords(name :Str, records :List[List[Any, Map[Str, DeepFrozen]]], ej):
+    def union := [].asMap().diverge()
+    for [_, record] in (records):
+        def recordMap := record.asMap()
+        for fieldName => guard in (recordMap):
+            if (union.contains(fieldName) & (union.get(fieldName) == guard)):
+                union[fieldName] := guard
+            else:
+                throw.eject(ej,
+                    `Cannot combine records with like fields and unlike guards.
+                    $fieldName => $union.get($fieldName) or $guard`)
+
+    return makeRecord(name, union.snapshot())
+
+
 # For testing purposes only.
 def [Test, makeTest] := makeRecord("Test", ["first" => Int, "second" => Char])
+def [Test2, makeTest2] := makeRecord("Test2", ["third" => Str])
+def [Test3, makeTest3] := makeRecord("Test3", ["third" => null])
 
 def testRecordMutation(assert):
     # Yeah, I'm aware that this is a crime against ejectors. I don't care.
@@ -94,9 +112,29 @@ def testRecordAsMap(assert):
     def test := makeTest(42, 'm')
     assert.equal(test.asMap(), ["first" => 42, "second" => 'm'])
 
+def testRecordUnion(assert):
+    assert.doesNotEject(fn ej {
+        def [Unioned, makeUnioned] := unionRecords(
+                "Unioned", [makeTest, makeTest2], null)
+        def longRecord := makeUnioned(42, 'm', "L")
+        assert.equal(
+            M.toString(longRecord),
+            `Unioned(first => 42, second => 'm', third => "L")`
+        )
+        assert.equal(longRecord.getThird(), "L")
+    })
+    assert.doesNotEject(fn {
+        def [_, _] := unionRecords("Unioned", [makeTest2, makeTest3], null)
+    })
+    assert.throws(fn {
+        def [_, _] := unionRecords("Unioned", [makeTest3, makeTest3], null)
+    })
+
+
 unittest([
     testRecordMutation,
     testRecordCreationGuard,
     testRecordMutationGuard,
     testRecordAsMap,
+    testRecordUnion,
 ])
